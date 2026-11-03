@@ -1,0 +1,13 @@
+name: Keep alive
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Réveiller le site Render
+        run: curl -sS -m 60 -o /dev/null -w "HTTP %{http_code}\n" https://he-s-otp.onrender.com/ || true
