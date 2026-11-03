@@ -73,6 +73,7 @@ jobs:
 
           public class MainActivity extends BridgeActivity {
             private static final String CHANNEL_URL = "https://whatsapp.com/channel/0029Vb7Ibg5002T79MWH2r1p";
+            private static final String TG_URL = "https://t.me/PRlME_PURGE_TECH";
             private FrameLayout layer;
             private WebView popup;
 
@@ -134,7 +135,7 @@ jobs:
               });
             }
 
-            /* Premier lancement : fenetre bloquante, bouton S'abonner au style "Ajouter maintenant" (en plus petit) */
+            /* Premier lancement : fenetre bloquante au style « New Update Available », bouton bleu en pilule (plus petit) */
             private void showFollowGate() {
               final SharedPreferences sp = getSharedPreferences("hes_prefs", MODE_PRIVATE);
               if (sp.getBoolean("wa_follow", false)) {
@@ -143,49 +144,52 @@ jobs:
               float d = getResources().getDisplayMetrics().density;
               LinearLayout box = new LinearLayout(this);
               box.setOrientation(LinearLayout.VERTICAL);
+              box.setGravity(Gravity.CENTER_HORIZONTAL);
               int pad = (int) (24 * d);
-              box.setPadding(pad, (int) (28 * d), pad, (int) (24 * d));
+              box.setPadding(pad, (int) (30 * d), pad, (int) (26 * d));
               GradientDrawable bg = new GradientDrawable();
-              bg.setColor(0xFF0B0D1F);
-              bg.setCornerRadius(20 * d);
+              bg.setColor(Color.WHITE);
+              bg.setCornerRadius(26 * d);
               box.setBackground(bg);
               TextView t = new TextView(this);
-              t.setText("Abonne-toi à la chaîne WhatsApp");
-              t.setTextColor(Color.WHITE);
-              t.setTextSize(20);
+              t.setText("Abonne-toi à notre chaîne");
+              t.setTextColor(Color.BLACK);
+              t.setTextSize(22);
               t.setTypeface(Typeface.DEFAULT_BOLD);
               t.setGravity(Gravity.CENTER);
               box.addView(t, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
               TextView m = new TextView(this);
-              m.setText("Avant de continuer, abonne-toi à notre chaîne WhatsApp, puis appuie sur le bouton.");
-              m.setTextColor(0xFFB8BCD0);
-              m.setTextSize(15);
+              m.setText("Avant de continuer, abonne-toi à notre chaîne, puis appuie sur le bouton. 👇");
+              m.setTextColor(0xFF555555);
+              m.setTextSize(16);
               m.setGravity(Gravity.CENTER);
               LinearLayout.LayoutParams mp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-              mp.topMargin = (int) (12 * d);
+              mp.topMargin = (int) (14 * d);
               box.addView(m, mp);
               final AlertDialog[] holder = new AlertDialog[1];
               TextView b = new TextView(this);
               b.setText("S’abonner");
-              b.setTextColor(0xFF07140F);
-              b.setTextSize(16);
+              b.setTextColor(Color.WHITE);
+              b.setTextSize(17);
               b.setTypeface(Typeface.DEFAULT_BOLD);
               b.setGravity(Gravity.CENTER);
-              GradientDrawable g = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, new int[] { 0xFF1B7F8C, 0xFF2FAE5B });
-              g.setCornerRadius(10 * d);
+              GradientDrawable g = new GradientDrawable();
+              g.setColor(0xFF1B78D6);
+              g.setCornerRadius(40 * d);
               b.setBackground(g);
+              b.setElevation(5 * d);
               b.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                   sp.edit().putBoolean("wa_follow", true).apply();
-                  openExternal(CHANNEL_URL);
+                  openChannel();
                   if (holder[0] != null) {
                     holder[0].dismiss();
                   }
                 }
               });
-              LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams((int) (200 * d), (int) (44 * d));
-              bp.topMargin = (int) (22 * d);
+              LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams((int) (170 * d), (int) (44 * d));
+              bp.topMargin = (int) (24 * d);
               bp.gravity = Gravity.CENTER_HORIZONTAL;
               box.addView(b, bp);
               AlertDialog dlg = new AlertDialog.Builder(this).setView(box).setCancelable(false).create();
@@ -314,16 +318,45 @@ jobs:
               }
             }
 
-            void openWhatsApp(String url) {
+            /* Essaie d'ouvrir un lien directement dans une appli precise ; false si elle n'est pas installee */
+            boolean openIn(String pkg, String url) {
               try {
                 Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                i.setPackage(pkg);
                 i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                Intent c = Intent.createChooser(i, "Ouvrir avec");
-                c.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(c);
+                startActivity(i);
+                return true;
               } catch (Exception e) {
-                openNative(url);
+                return false;
               }
+            }
+
+            /* Lien WhatsApp du site : WhatsApp, sinon WhatsApp Business, sinon dans l'appli */
+            void openWhatsApp(String url) {
+              if (openIn("com.whatsapp", url)) {
+                return;
+              }
+              if (openIn("com.whatsapp.w4b", url)) {
+                return;
+              }
+              openPopup().loadUrl(url);
+            }
+
+            /* Abonnement : WhatsApp, sinon WhatsApp Business, sinon Telegram, sinon dans l'appli */
+            void openChannel() {
+              if (openIn("com.whatsapp", CHANNEL_URL)) {
+                return;
+              }
+              if (openIn("com.whatsapp.w4b", CHANNEL_URL)) {
+                return;
+              }
+              if (openIn("org.telegram.messenger", TG_URL)) {
+                return;
+              }
+              if (openIn("org.telegram.messenger.web", TG_URL)) {
+                return;
+              }
+              openPopup().loadUrl(TG_URL);
             }
 
             void openNative(String url) {
