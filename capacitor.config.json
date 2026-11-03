@@ -1,0 +1,15 @@
+{
+  "appId": "com.hesotp.app",
+  "appName": "HES OTP",
+  "webDir": "www",
+  "server": {
+    "url": "https://he-s-otp.onrender.com/",
+    "androidScheme": "https",
+    "cleartext": false,
+    "allowNavigation": [
+      "he-s-otp.onrender.com"
+    ],
+    "errorPath": "offline.html"
+  },
+  "backgroundColor": "#000000"
+}
